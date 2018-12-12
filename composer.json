@@ -1,0 +1,28 @@
+{
+    "name": "earc/component-di",
+    "description": "eArc - the explicit architecture framework - component dependency injection component",
+    "type": "library",
+    "license": "MIT",
+    "version": "0.0-ALPHA",
+    "authors": [
+        {
+            "name": "Thomas Koudela",
+            "email": "thomas@koudela.net"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable" : true,
+    "require": {
+        "php": "^7.2",
+        "earc/event-tree": "dev-develop",
+        "earc/di": "dev-develop"
+    },
+    "autoload": {
+        "psr-4" : {
+            "eArc\\ComponentDI\\" : "src"
+        }
+    },
+    "require-dev": {
+        "behat/behat": "^3.5"
+    }
+}
