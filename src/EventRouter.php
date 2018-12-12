@@ -1,8 +1,17 @@
 <?php
+/**
+ * e-Arc Framework - the explicit Architecture Framework
+ *
+ * @package earc/component-di
+ * @link https://github.com/Koudela/eArc-component-di/
+ * @copyright Copyright (c) 2018 Thomas Koudela
+ * @license http://opensource.org/licenses/MIT MIT License
+ */
 
 namespace eArc\ComponentDI;
 
 use Behat\Testwork\Output\Node\EventListener\EventListener;
+use eArc\ComponentDI\Exceptions\CircularDependencyException;
 use eArc\ComponentDI\Exceptions\NoSuchComponentException;
 use eArc\DI\DependencyContainer;
 use eArc\DI\Exceptions\NotFoundException;
@@ -52,6 +61,17 @@ class EventRouter extends BaseEventRouter
     protected function visitObserver(Observer $observer): void
     {
         $eventRouter = $this;
+
+        if (1 === $this->depth) {
+            $buildComponentItems = $this->event->getPayload()
+                ->get('eArcDIContainerBuildComponents');
+
+            if ($buildComponentItems->has($observer->getName())) {
+                throw new CircularDependencyException();
+            }
+
+            $buildComponentItems->set($observer->getName(), true);
+        }
 
         $observer->callListeners(
             $this->event,

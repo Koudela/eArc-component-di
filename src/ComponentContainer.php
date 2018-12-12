@@ -1,10 +1,19 @@
 <?php
+/**
+ * e-Arc Framework - the explicit Architecture Framework
+ *
+ * @package earc/component-di
+ * @link https://github.com/Koudela/eArc-component-di/
+ * @copyright Copyright (c) 2018 Thomas Koudela
+ * @license http://opensource.org/licenses/MIT MIT License
+ */
 
 namespace eArc\ComponentDI;
 
 use eArc\ComponentDI\Exceptions\NoSuchComponentException;
 use eArc\DI\Exceptions\NotFoundException;
 use eArc\PayloadContainer\Exceptions\ItemNotFoundException;
+use eArc\PayloadContainer\Items;
 use eArc\Tree\Exceptions\NotFoundException as ObserverNotFoundException;
 use eArc\DI\DependencyContainer;
 use eArc\EventTree\Event;
@@ -104,13 +113,17 @@ class ComponentContainer
         } catch (ItemNotFoundException $notFoundException) {}
 
         try {
+            $payload = $this->rootEvent->getPayload();
+            $payload->remove('eArcDIContainerBuildComponents');
+            $payload->set('eArcDIContainerBuildComponents', new Items());
+
             $buildEvent = $this->rootEvent->getEventFactory()
                 ->destination([$component])
                 ->build();
 
             $buildEvent->dispatch();
 
-            return $buildEvent->getPayload()->get('eArcDIContainer:' . $component);
+            return $payload->get('eArcDIContainer:' . $component);
         } catch (ObserverNotFoundException $notFoundException) {
             throw new NoSuchComponentException($component);
         }
