@@ -22,11 +22,15 @@ use eArc\ObserverTree\Observer;
 
 class ComponentContainer
 {
+    const CIRCLE_DETECTION = ComponentContainer::class . '/CircleDetection';
+
+    const CONTAINER_BAG = ComponentContainer::class . '/ContainerBag';
+
     /** @var Event */
     protected $rootEvent;
 
-    /** @var array */
-    protected $components = [];
+    /** @var Items */
+    protected $components;
 
     public function __construct(Observer $eventTree)
     {
@@ -40,6 +44,10 @@ class ComponentContainer
             true,
             EventRouter::class,
             null);
+
+        $this->components = new Items;
+        $this->rootEvent->getPayload()->set(self::CONTAINER_BAG, $this->components);
+        $this->rootEvent->getPayload()->set(self::CIRCLE_DETECTION, new Items());
     }
 
     /**
@@ -92,11 +100,11 @@ class ComponentContainer
      */
     public function getComponent(string $component): DependencyContainer
     {
-        if (!isset($this->components[$component])) {
-            $this->components[$component] = $this->buildComponent($component);
+        if (!$this->components->has($component)) {
+            $this->buildComponent($component);
         }
 
-        return $this->components[$component];
+        return $this->components->get($component);
     }
 
     /**
@@ -109,21 +117,11 @@ class ComponentContainer
     protected function buildComponent(string $component): DependencyContainer
     {
         try {
-            return $this->rootEvent->getPayload()->get('eArcDIContainer:'.$component);
-        } catch (ItemNotFoundException $notFoundException) {}
-
-        try {
-            $payload = $this->rootEvent->getPayload();
-            $payload->remove('eArcDIContainerBuildComponents');
-            $payload->set('eArcDIContainerBuildComponents', new Items());
-
             $buildEvent = $this->rootEvent->getEventFactory()
                 ->destination([$component])
                 ->build();
 
             $buildEvent->dispatch();
-
-            return $payload->get('eArcDIContainer:' . $component);
         } catch (ObserverNotFoundException $notFoundException) {
             throw new NoSuchComponentException($component);
         }

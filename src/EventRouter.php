@@ -63,8 +63,8 @@ class EventRouter extends BaseEventRouter
         $eventRouter = $this;
 
         if (1 === $this->depth) {
-            $buildComponentItems = $this->event->getPayload()
-                ->get('eArcDIContainerBuildComponents');
+            $buildComponentItems = $this->event
+                ->get(ComponentContainer::CIRCLE_DETECTION);
 
             if ($buildComponentItems->has($observer->getName())) {
                 throw new CircularDependencyException();
@@ -95,10 +95,8 @@ class EventRouter extends BaseEventRouter
         );
 
         if (1 === $this->depth) {
-            $this->event->getPayload()->set(
-                'eArcDIContainer:'.$observer->getName(),
-                $this->container
-            );
+            $this->event->getPayload()->get(ComponentContainer::CONTAINER_BAG)
+                ->set($observer->getName(), $this->container);
         }
 
         $this->event->getHandler()->transferState($this);
@@ -117,7 +115,7 @@ class EventRouter extends BaseEventRouter
                 continue;
             }
 
-            if (!$this->event->has('eArcDIComponent:'.$dependency)) {
+            if (!$this->event->get(ComponentContainer::CONTAINER_BAG)->has($dependency)) {
                 try {
                     $this->event->getEventFactoryFromRoot()
                         ->destination([$dependency])
@@ -129,7 +127,7 @@ class EventRouter extends BaseEventRouter
             }
 
             $this->dependencies[$dependency] = $this->event
-                ->get('eArcDIComponent:'.$dependency);
+                ->get(ComponentContainer::CONTAINER_BAG)->get($dependency);
         }
     }
 }
