@@ -10,7 +10,7 @@
 
 namespace eArc\ComponentDI;
 
-use Behat\Testwork\Output\Node\EventListener\EventListener;
+use eArc\ObserverTree\Interfaces\EventListenerInterface;
 use eArc\ComponentDI\Exceptions\CircularDependencyException;
 use eArc\ComponentDI\Exceptions\NoSuchComponentException;
 use eArc\DI\DependencyContainer;
@@ -21,6 +21,9 @@ use eArc\EventTree\Handler;
 use eArc\EventTree\Propagation\EventRouter as BaseEventRouter;
 use eArc\ObserverTree\Observer;
 
+/**
+ * Dependency injection container composite factory.
+ */
 class EventRouter extends BaseEventRouter
 {
     /** @var string[] */
@@ -29,6 +32,9 @@ class EventRouter extends BaseEventRouter
     /** @var DependencyContainer */
     protected $container;
 
+    /**
+     * @param Event $event
+     */
     public function __construct(Event $event)
     {
         parent::__construct($event);
@@ -52,7 +58,8 @@ class EventRouter extends BaseEventRouter
     }
 
     /**
-     * Defines how the observer calls the listener.
+     * Defines how the observer calls the listener. The heart of the dependency
+     * container composite factory.
      *
      * @param Observer $observer
      *
@@ -82,7 +89,7 @@ class EventRouter extends BaseEventRouter
                     ? Observer::CALL_LISTENER_BREAK : null;
             },
             null,
-            function($result, EventListener $listener) use ($eventRouter) {
+            function($result, EventListenerInterface $listener) use ($eventRouter) {
                 $dependencies = $listener::EARC_LISTENER_COMPONENT_DEPENDENCIES ?? [];
 
                 $eventRouter->buildDependencies($dependencies);
