@@ -14,7 +14,6 @@ use eArc\ObserverTree\Interfaces\EventListenerInterface;
 use eArc\ComponentDI\Exceptions\CircularDependencyException;
 use eArc\ComponentDI\Exceptions\NoSuchComponentException;
 use eArc\DI\DependencyContainer;
-use eArc\DI\Exceptions\NotFoundException;
 use eArc\eventTree\Event;
 use eArc\PayloadContainer\Exceptions\ItemNotFoundException;
 use eArc\Tree\Exceptions\NotFoundException as ObserverNotFoundException;
@@ -42,19 +41,20 @@ class EventRouter extends BaseEventRouter
 
         $eventRouter = $this;
 
-        $this->container = new DependencyContainer(null, function($name) use ($eventRouter) {
+        $this->container = new DependencyContainer(null, function(&$name) use ($eventRouter) {
             foreach ($eventRouter->dependencies as $dependency) {
                 /** @var DependencyContainer $depContainer */
                 $depContainer = $eventRouter->event
                     ->get(ComponentContainer::CONTAINER_BAG)->get($dependency);
 
                 if ($depContainer->has($name)) {
+                    $name = $depContainer->get($name);
 
-                    return $depContainer->get($name);
+                    return true;
                 }
-            }
 
-            throw new ItemNotFoundException();
+                return false;
+            }
         });
     }
 
