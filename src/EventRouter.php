@@ -16,6 +16,7 @@ use eArc\ComponentDI\Exceptions\NoSuchComponentException;
 use eArc\DI\DependencyContainer;
 use eArc\DI\Exceptions\NotFoundException;
 use eArc\eventTree\Event;
+use eArc\PayloadContainer\Exceptions\ItemNotFoundException;
 use eArc\Tree\Exceptions\NotFoundException as ObserverNotFoundException;
 use eArc\EventTree\Handler;
 use eArc\EventTree\Propagation\EventRouter as BaseEventRouter;
@@ -45,7 +46,7 @@ class EventRouter extends BaseEventRouter
             foreach ($eventRouter->dependencies as $dependency) {
                 /** @var DependencyContainer $depContainer */
                 $depContainer = $eventRouter->event
-                    ->get('eArcDIContainer:'.$dependency);
+                    ->get(ComponentContainer::CONTAINER_BAG)->get($dependency);
 
                 if ($depContainer->has($name)) {
 
@@ -53,7 +54,7 @@ class EventRouter extends BaseEventRouter
                 }
             }
 
-            throw new NotFoundException();
+            throw new ItemNotFoundException();
         });
     }
 

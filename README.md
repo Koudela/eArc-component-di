@@ -51,14 +51,14 @@ $components->get($componentName)->get($fullyQualifiedClassOrParameterName)
 ```
 
 **Returns the class object or parameter.** If it is not defined it throws a 
-`NotFoundException`.
+`ItemNotFoundException`.
 
 ```php
 $components->get($componentName)->make($fullyQualifiedClassName)
 ```
 
 **Returns a new build object.** If it is not defined it throws a 
-`NotFoundException`.
+`ItemNotFoundException`.
 
 ## defining parameter and objects
 
