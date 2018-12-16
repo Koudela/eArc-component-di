@@ -15,7 +15,6 @@ use eArc\ComponentDI\Exceptions\CircularDependencyException;
 use eArc\ComponentDI\Exceptions\NoSuchComponentException;
 use eArc\DI\DependencyContainer;
 use eArc\eventTree\Event;
-use eArc\PayloadContainer\Exceptions\ItemNotFoundException;
 use eArc\Tree\Exceptions\NotFoundException as ObserverNotFoundException;
 use eArc\EventTree\Handler;
 use eArc\EventTree\Propagation\EventRouter as BaseEventRouter;
@@ -52,9 +51,9 @@ class EventRouter extends BaseEventRouter
 
                     return true;
                 }
-
-                return false;
             }
+
+            return false;
         });
     }
 
