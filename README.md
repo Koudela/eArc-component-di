@@ -36,7 +36,7 @@ $components = new ComponentContainer($componentsRootKey);
 $components->get($componentName)
 ```
 
-**Returns an eArc dependency container** that contains only the dependencies of 
+**Returns an earc dependency container** that contains only the dependencies of 
 the component. If the component does not exists it throws a 
 `NoSuchComponentException`.
 
@@ -62,8 +62,8 @@ $components->get($componentName)->make($fullyQualifiedClassName)
 
 ## defining parameter and objects
 
-earc/component-di uses the full power of the eArc dependency injection container
-[earc/di](https://github.com/Koudela/eArc-di) and the eArc event tree
+earc/component-di uses the full power of the earc dependency injection container
+[earc/di](https://github.com/Koudela/eArc-di) and the earc event tree
 [earc/event-tree](https://github.com/Koudela/eArc-eventTree).
 
 Each component is represented as a directory in the component event tree. For
@@ -130,7 +130,7 @@ If you are interested in further details on defining listeners and using events
 refer to [earc/observer-tree](https://github.com/Koudela/eArc-observer-tree) 
 and [earc/event-tree](https://github.com/Koudela/eArc-eventTree).
 
-## versions
+## releases
 
 ### current
 version 0.0-BETA
