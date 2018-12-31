@@ -10,7 +10,7 @@
 
 namespace eArc\ComponentDI;
 
-use eArc\ObserverTree\Interfaces\EventListenerInterface;
+use eArc\ObserverTree\Interfaces\EventListenerFactoryInterface;
 use eArc\ComponentDI\Exceptions\CircularDependencyException;
 use eArc\ComponentDI\Exceptions\NoSuchComponentException;
 use eArc\DI\DependencyContainer;
@@ -89,7 +89,7 @@ class EventRouter extends BaseEventRouter
                     ? Observer::CALL_LISTENER_BREAK : null;
             },
             null,
-            function($result, EventListenerInterface $listener) use ($eventRouter) {
+            function($result, EventListenerFactoryInterface $listener) use ($eventRouter) {
                 $dependencies = $listener::EARC_LISTENER_COMPONENT_DEPENDENCIES ?? [];
 
                 $eventRouter->buildDependencies($dependencies);
