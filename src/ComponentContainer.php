@@ -73,6 +73,7 @@ class ComponentContainer
         try {
             $buildEvent = $this->rootEvent->getEventFactory()
                 ->destination([$component])
+                ->inheritPayload(true)
                 ->build();
 
             $buildEvent->dispatch();

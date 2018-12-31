@@ -27,7 +27,7 @@ $eventTreeFactory = new ObserverTreeFactory(
 $componentsRootKey = 'components';
 $componentsEventTree = $eventTreeFactory->get($componentsRootKey);
 
-$components = new ComponentContainer($componentsRootKey);
+$components = new ComponentContainer($componentsEventTree);
 ```
 
 ## usage
