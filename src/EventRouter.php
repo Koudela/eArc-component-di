@@ -84,7 +84,7 @@ class EventRouter extends BaseEventRouter
             $this->event,
             $this->eventPhase,
             function() use ($eventRouter) {
-                $state = $eventRouter->event->getHandler()->transferState($eventRouter);
+                $state = $eventRouter->getState();
                 return 0 !== $state & Handler::EVENT_IS_SILENCED
                     ? Observer::CALL_LISTENER_BREAK : null;
             },
@@ -102,11 +102,9 @@ class EventRouter extends BaseEventRouter
         );
 
         if (1 === $this->depth) {
-            $this->event->getPayload()->get(ComponentContainer::CONTAINER_BAG)
+            $this->event->get(ComponentContainer::CONTAINER_BAG)
                 ->set($observer->getName(), $this->container);
         }
-
-        $this->event->getHandler()->transferState($this);
     }
 
     /**
@@ -124,7 +122,7 @@ class EventRouter extends BaseEventRouter
 
             if (!$this->event->get(ComponentContainer::CONTAINER_BAG)->has($dependency)) {
                 try {
-                    $this->event->getEventFactoryFromRoot()
+                    $this->event->getRoot()->getEventFactory()
                         ->destination([$dependency])
                         ->build()
                         ->dispatch();

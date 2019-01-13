@@ -38,13 +38,13 @@ class ComponentContainer
         $this->rootEvent = new Event(
             null,
             new Type($eventTree, [], [], null),
-            true,
+            null,
             EventRouter::class,
             null);
 
         $this->components = new Items;
-        $this->rootEvent->getPayload()->set(self::CONTAINER_BAG, $this->components);
-        $this->rootEvent->getPayload()->set(self::CIRCLE_DETECTION, new Items());
+        $this->rootEvent->set(self::CONTAINER_BAG, $this->components);
+        $this->rootEvent->set(self::CIRCLE_DETECTION, new Items());
     }
 
     /**
