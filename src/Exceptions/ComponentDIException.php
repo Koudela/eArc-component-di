@@ -11,6 +11,11 @@
 
 namespace eArc\ComponentDI\Exceptions;
 
-class CircularDependencyException extends ComponentDIException
+use Exception;
+
+/**
+ * Generic component dependency injection exception
+ */
+class ComponentDIException extends Exception
 {
 }

@@ -1,22 +1,25 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
+ * component dependency injection component
  *
  * @package earc/component-di
  * @link https://github.com/Koudela/eArc-component-di/
- * @copyright Copyright (c) 2018 Thomas Koudela
+ * @copyright Copyright (c) 2018-2019 Thomas Koudela
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
+
 namespace eArc\ComponentDI;
 
+use eArc\ComponentDI\Exceptions\CircularDependencyException;
 use eArc\ComponentDI\Exceptions\NoSuchComponentException;
-use eArc\PayloadContainer\Items;
-use eArc\Tree\Exceptions\NotFoundException as ObserverNotFoundException;
+use eArc\Container\Items;
+use eArc\EventTree\Exceptions\InvalidDestinationNodeException;
+use eArc\EventTree\RoutingType;
+use eArc\EventTree\TreeEvent;
+use eArc\ObserverTree\Interfaces\ObserverTreeInterface;
 use eArc\DI\DependencyContainer;
-use eArc\EventTree\Event;
-use eArc\EventTree\Type;
-use eArc\ObserverTree\Observer;
 
 /**
  * Dependency injection container composite facade.
@@ -27,22 +30,30 @@ class ComponentContainer
 
     const CONTAINER_BAG = ComponentContainer::class . '/ContainerBag';
 
-    /** @var Event */
+    /** @var TreeEvent */
     protected $rootEvent;
 
     /** @var Items */
     protected $components;
 
-    public function __construct(Observer $eventTree)
+    /**
+     * @param ObserverTreeInterface $observerTree
+     *
+     * @throws \eArc\Container\Exceptions\ItemOverwriteException
+     * @throws \eArc\EventTree\Exceptions\EventTreeException
+     * @throws \eArc\EventTree\Exceptions\InvalidDestinationNodeException
+     * @throws \eArc\EventTree\Exceptions\InvalidStartNodeException
+     */
+    public function __construct(ObserverTreeInterface $observerTree)
     {
-        $this->rootEvent = new Event(
+        $this->rootEvent = new TreeEvent(
             null,
-            new Type($eventTree, [], [], null),
+            new RoutingType($observerTree, [], [], null),
             null,
-            EventRouter::class,
-            null);
+            ComponentEventRouter::class
+        );
 
-        $this->components = new Items;
+        $this->components = new Items();
         $this->rootEvent->set(self::CONTAINER_BAG, $this->components);
         $this->rootEvent->set(self::CIRCLE_DETECTION, new Items());
     }
@@ -53,6 +64,12 @@ class ComponentContainer
      * @return DependencyContainer
      *
      * @throws NoSuchComponentException
+     * @throws CircularDependencyException
+     * @throws \eArc\Container\Exceptions\ItemNotFoundException
+     * @throws \eArc\Container\Exceptions\ItemOverwriteException
+     * @throws \eArc\EventTree\Exceptions\InvalidStartNodeException
+     * @throws \eArc\EventTree\Exceptions\IsDispatchedException
+     * @throws \eArc\EventTree\Exceptions\IsRootEventException
      */
     public function get(string $component): DependencyContainer
     {
@@ -67,17 +84,22 @@ class ComponentContainer
      * @param string $component
      *
      * @throws NoSuchComponentException
+     * @throws CircularDependencyException
+     * @throws \eArc\Container\Exceptions\ItemOverwriteException
+     * @throws \eArc\EventTree\Exceptions\InvalidStartNodeException
+     * @throws \eArc\EventTree\Exceptions\IsDispatchedException
+     * @throws \eArc\EventTree\Exceptions\IsRootEventException
      */
     protected function buildComponent(string $component): void
     {
         try {
-            $buildEvent = $this->rootEvent->getEventFactory()
+            $buildEvent = $this->rootEvent->fork()
                 ->destination([$component])
                 ->inheritPayload(true)
                 ->build();
 
             $buildEvent->dispatch();
-        } catch (ObserverNotFoundException $notFoundException) {
+        } catch (InvalidDestinationNodeException $notFoundException) {
             throw new NoSuchComponentException($component);
         }
     }

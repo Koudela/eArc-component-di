@@ -16,7 +16,7 @@
         "php": "^7.2",
         "earc/event-tree": "dev-develop",
         "earc/di": "dev-develop",
-        "earc/payload-container": "dev-master"
+        "earc/container": "dev-master"
     },
     "autoload": {
         "psr-4" : {
