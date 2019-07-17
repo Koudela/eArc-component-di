@@ -15,17 +15,24 @@ use eArc\ComponentDI\Exceptions\AccessDeniedException;
 use eArc\ComponentDI\Exceptions\NoSuchComponentException;
 use eArc\ComponentDI\Interfaces\ComponentInterface;
 use eArc\ComponentDI\RootComponent;
-use eArc\DI\Exceptions\DIException;
 use eArc\DI\Exceptions\NotFoundDIException;
 
 class Component implements ComponentInterface
 {
+    /** @var string[]  */
     protected static $component = [];
+    /** @var int[] */
     protected static $type = [];
+    /** @var string[] */
+    protected static $shortName = [];
 
+    /** @var string */
     protected $fQCNComponent;
+    /** @var string */
     protected $fQCN;
+    /** @var int */
     protected $fQCNType;
+
 
     /**
      * @param string $fQCNComponent
@@ -37,7 +44,7 @@ class Component implements ComponentInterface
     public function __construct(string $fQCNComponent, string $fQCN, int $type)
     {
         if (!is_subclass_of($fQCNComponent, RootComponent::class)) {
-            throw new NoSuchComponentException(sprintf("No component named %s exists.", $fQCNComponent));
+            throw new NoSuchComponentException(sprintf('No component named %s exists.', $fQCNComponent));
         }
 
         self::$component[$fQCN] = $fQCNComponent;
@@ -46,6 +53,16 @@ class Component implements ComponentInterface
         $this->fQCNComponent = $fQCNComponent;
         $this->fQCN = $fQCN;
         $this->fQCNType = $type;
+    }
+
+    public static function getShortName(string $fQCNComponent): string
+    {
+        if (!isset(self::$shortName[$fQCNComponent])) {
+            $pos = strrpos($fQCNComponent, '\\');
+            self::$shortName[$fQCNComponent] = strtolower(substr($fQCNComponent, false === $pos ? 0 : $pos + 1));
+        }
+
+        return self::$shortName[$fQCNComponent];
     }
 
     public function get(&$class, string $fQCN): ComponentInterface
@@ -90,10 +107,12 @@ class Component implements ComponentInterface
 
     public function param(&$parameter, string $key): ComponentInterface
     {
-        $extendedKey = $this->fQCNComponent.'.'.$key;
+        $extendedKey = self::getShortName($this->fQCNComponent).'.'.$key;
 
         if (!di_has_param($extendedKey)) {
-            return $this->getParameterByParent($this->fQCNComponent, $key);
+            $parameter = $this->getParameterByParent($this->fQCNComponent, $key);
+
+            return $this;
         }
 
         $parameter = di_param($extendedKey);
@@ -108,13 +127,16 @@ class Component implements ComponentInterface
      * @return mixed
      *
      * @throws NotFoundDIException
-     * @throws DIException
      */
     protected function getParameterByParent(string $component, string $key)
     {
         $parent = get_parent_class($component);
 
         if (RootComponent::class === $parent) {
+            if (di_has_param($key)) {
+                return di_param($key);
+            }
+
             throw new NotFoundDIException(sprintf('Parameter %s was never added to the parameter bag of component %s.', $key, $this->fQCNComponent));
         }
 

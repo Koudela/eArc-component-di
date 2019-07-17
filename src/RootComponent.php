@@ -12,7 +12,7 @@
 namespace eArc\ComponentDI;
 
 /**
- * All components inherit from the root component.
+ * All components inherit direct or indirect from the root component.
  */
 class RootComponent
 {

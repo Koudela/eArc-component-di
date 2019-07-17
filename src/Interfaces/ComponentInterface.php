@@ -13,6 +13,7 @@ namespace eArc\ComponentDI\Interfaces;
 
 use eArc\ComponentDI\Exceptions\AccessDeniedException;
 use eArc\DI\Exceptions\DIException;
+use eArc\DI\Exceptions\NotFoundDIException;
 
 /**
  * Interface of the component builder.
@@ -22,6 +23,15 @@ interface ComponentInterface
     const PUBLIC = 0;
     const PROTECTED = 1;
     const PRIVATE = 2;
+
+    /**
+     * Returns the short name used in the parameter context of a component.
+     *
+     * @param string $fQCNComponent The fully qualified class name of the component.
+     *
+     * @return string
+     */
+    public static function getShortName(string $fQCNComponent): string;
 
     /**
      * Checks the class identifier against the current component. On success it passes
@@ -81,5 +91,17 @@ interface ComponentInterface
      */
     public function makeUnregistered(&$class, string $fQCN): ComponentInterface;
 
-    public function param(&$param, string $fQCN): ComponentInterface;
+    /**
+     * Searches the component and all parent components for the parameter. If none
+     * holds it looks up the global namespace. If a parameter is found it is passed
+     * to the `$param` variable otherwise a NotFoundDIException is thrown.
+     *
+     * @param mixed  $param
+     * @param string $key
+     *
+     * @return ComponentInterface The current component object.
+     *
+     * @throws NotFoundDIException The parameter is not set.
+     */
+    public function param(&$param, string $key): ComponentInterface;
 }
