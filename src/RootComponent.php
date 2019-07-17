@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
  * component dependency injection component
@@ -9,13 +9,11 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\ComponentDI\Exceptions;
-
-use Exception;
+namespace eArc\ComponentDI;
 
 /**
- * Generic component dependency injection exception
+ * All components inherit from the root component.
  */
-class ComponentDIException extends Exception
+class RootComponent
 {
 }

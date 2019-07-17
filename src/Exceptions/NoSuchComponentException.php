@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
  * component dependency injection component
@@ -11,13 +11,8 @@
 
 namespace eArc\ComponentDI\Exceptions;
 
-use Psr\Container\NotFoundExceptionInterface;
-use Throwable;
+use eArc\DI\Exceptions\DIException;
 
-class NoSuchComponentException extends ComponentDIException implements NotFoundExceptionInterface
+class NoSuchComponentException extends DIException
 {
-    public function __construct(string $componentName = '', int $code = 0, Throwable $previous = null)
-    {
-        parent::__construct("No component named `$componentName` exists.", $code, $previous);
-    }
 }

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
  * component dependency injection component
@@ -11,6 +11,8 @@
 
 namespace eArc\ComponentDI\Exceptions;
 
-class CircularDependencyException extends ComponentDIException
+use eArc\DI\Exceptions\DIException;
+
+class AccessDeniedException extends DIException
 {
 }

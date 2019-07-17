@@ -3,7 +3,7 @@
     "description": "eArc - the explicit architecture framework - component dependency injection component",
     "type": "library",
     "license": "MIT",
-    "version": "0.0",
+    "version": "1.0-ALPHA",
     "authors": [
         {
             "name": "Thomas Koudela",
@@ -14,9 +14,7 @@
     "prefer-stable" : true,
     "require": {
         "php": "^7.2",
-        "earc/event-tree": "^0.0",
-        "earc/di": "^1.0",
-        "earc/container": "^0.1"
+        "earc/di": "dev-develop"
     },
     "autoload": {
         "psr-4" : {
