@@ -14,8 +14,14 @@ namespace eArc\ComponentDI;
 
 use eArc\ComponentDI\Exceptions\CircularDependencyException;
 use eArc\ComponentDI\Exceptions\NoSuchComponentException;
+use eArc\Container\Exceptions\ItemNotFoundException;
+use eArc\Container\Exceptions\ItemOverwriteException;
 use eArc\Container\Items;
+use eArc\EventTree\Exceptions\EventTreeException;
 use eArc\EventTree\Exceptions\InvalidDestinationNodeException;
+use eArc\EventTree\Exceptions\InvalidStartNodeException;
+use eArc\EventTree\Exceptions\IsDispatchedException;
+use eArc\EventTree\Exceptions\IsRootEventException;
 use eArc\EventTree\RoutingType;
 use eArc\EventTree\TreeEvent;
 use eArc\ObserverTree\Interfaces\ObserverTreeInterface;
@@ -39,10 +45,10 @@ class ComponentContainer
     /**
      * @param ObserverTreeInterface $observerTree
      *
-     * @throws \eArc\Container\Exceptions\ItemOverwriteException
-     * @throws \eArc\EventTree\Exceptions\EventTreeException
-     * @throws \eArc\EventTree\Exceptions\InvalidDestinationNodeException
-     * @throws \eArc\EventTree\Exceptions\InvalidStartNodeException
+     * @throws ItemOverwriteException
+     * @throws EventTreeException
+     * @throws InvalidDestinationNodeException
+     * @throws InvalidStartNodeException
      */
     public function __construct(ObserverTreeInterface $observerTree)
     {
@@ -65,11 +71,11 @@ class ComponentContainer
      *
      * @throws NoSuchComponentException
      * @throws CircularDependencyException
-     * @throws \eArc\Container\Exceptions\ItemNotFoundException
-     * @throws \eArc\Container\Exceptions\ItemOverwriteException
-     * @throws \eArc\EventTree\Exceptions\InvalidStartNodeException
-     * @throws \eArc\EventTree\Exceptions\IsDispatchedException
-     * @throws \eArc\EventTree\Exceptions\IsRootEventException
+     * @throws ItemNotFoundException
+     * @throws ItemOverwriteException
+     * @throws InvalidStartNodeException
+     * @throws IsDispatchedException
+     * @throws IsRootEventException
      */
     public function get(string $component): DependencyContainer
     {
@@ -85,10 +91,10 @@ class ComponentContainer
      *
      * @throws NoSuchComponentException
      * @throws CircularDependencyException
-     * @throws \eArc\Container\Exceptions\ItemOverwriteException
-     * @throws \eArc\EventTree\Exceptions\InvalidStartNodeException
-     * @throws \eArc\EventTree\Exceptions\IsDispatchedException
-     * @throws \eArc\EventTree\Exceptions\IsRootEventException
+     * @throws ItemOverwriteException
+     * @throws InvalidStartNodeException
+     * @throws IsDispatchedException
+     * @throws IsRootEventException
      */
     protected function buildComponent(string $component): void
     {

@@ -14,11 +14,17 @@ namespace eArc\ComponentDI;
 use eArc\ComponentDI\Exceptions\CircularDependencyException;
 use eArc\ComponentDI\Exceptions\NoSuchComponentException;
 use eArc\ComponentDI\Interfaces\ComponentListenerInterface;
+use eArc\Container\Exceptions\ItemNotFoundException;
+use eArc\Container\Exceptions\ItemOverwriteException;
 use eArc\DI\DependencyContainer;
 use eArc\DI\DependencyResolver;
+use eArc\DI\Exceptions\InvalidFactoryException;
 use eArc\DI\Exceptions\InvalidObjectConfigurationException;
 use eArc\DI\Support\ContainerCollection;
 use eArc\EventTree\Exceptions\InvalidDestinationNodeException;
+use eArc\EventTree\Exceptions\InvalidStartNodeException;
+use eArc\EventTree\Exceptions\IsDispatchedException;
+use eArc\EventTree\Exceptions\IsRootEventException;
 use eArc\EventTree\RoutingType;
 use eArc\EventTree\TreeEvent;
 use eArc\Observer\Exception\NoValidListenerException;
@@ -38,12 +44,13 @@ class ComponentEventRouter extends TreeEventRouter
     protected $containerCollection;
 
     /**
-     * @param TreeEvent   $event
+     * @param TreeEvent $event
      * @param RoutingType $routingType
      *
+     * @throws CircularDependencyException
+     * @throws InvalidFactoryException
+     * @throws InvalidObjectConfigurationException
      * @throws \eArc\DI\Exceptions\CircularDependencyException
-     * @throws \eArc\DI\Exceptions\InvalidFactoryException
-     * @throws \eArc\DI\Exceptions\InvalidObjectConfigurationException
      */
     public function __construct(TreeEvent $event, RoutingType $routingType)
     {
@@ -62,11 +69,11 @@ class ComponentEventRouter extends TreeEventRouter
      *
      * @throws NoSuchComponentException
      * @throws CircularDependencyException
-     * @throws \eArc\Container\Exceptions\ItemNotFoundException
-     * @throws \eArc\DI\Exceptions\InvalidObjectConfigurationException
-     * @throws \eArc\DI\Exceptions\InvalidFactoryException
-     * @throws \eArc\DI\Exceptions\InvalidFactoryException
-     * @throws \eArc\DI\Exceptions\CircularDependencyException
+     * @throws ItemNotFoundException
+     * @throws InvalidObjectConfigurationException
+     * @throws InvalidFactoryException
+     * @throws InvalidFactoryException
+     * @throws CircularDependencyException
      */
     protected function visitObserver(ObserverTreeInterface $observer): void
     {
@@ -121,8 +128,12 @@ class ComponentEventRouter extends TreeEventRouter
     /**
      * @param string[] $dependencies
      *
+     * @throws InvalidStartNodeException
+     * @throws ItemNotFoundException
      * @throws NoSuchComponentException
-     * @throws \eArc\Container\Exceptions\ItemNotFoundException
+     * @throws ItemOverwriteException
+     * @throws IsDispatchedException
+     * @throws IsRootEventException
      */
     protected function buildDependencies(array $dependencies)
     {
