@@ -12,12 +12,14 @@
 namespace eArc\ComponentDI\CoObjects;
 
 use eArc\ComponentDI\Exceptions\AccessDeniedException;
+use eArc\ComponentDI\Exceptions\OverwriteException;
 use eArc\ComponentDI\Exceptions\NoSuchComponentException;
-use eArc\ComponentDI\Interfaces\ComponentInterface;
+use eArc\ComponentDI\Exceptions\NotRegisteredException;
+use eArc\ComponentDI\Interfaces\ComponentResolverInterface;
 use eArc\ComponentDI\RootComponent;
 use eArc\DI\Exceptions\NotFoundDIException;
 
-class Component implements ComponentInterface
+class Resolver implements ComponentResolverInterface
 {
     /** @var string[]  */
     protected static $component = [];
@@ -25,6 +27,8 @@ class Component implements ComponentInterface
     protected static $type = [];
     /** @var string[] */
     protected static $shortName = [];
+    /** @var ComponentResolverInterface[] */
+    protected static $resolver = [];
 
     /** @var string */
     protected $fQCNComponent;
@@ -33,29 +37,46 @@ class Component implements ComponentInterface
     /** @var int */
     protected $fQCNType;
 
-
-    /**
-     * @param string $fQCNComponent
-     * @param string $fQCN
-     * @param int $type
-     *
-     * @throws NoSuchComponentException
-     */
-    public function __construct(string $fQCNComponent, string $fQCN, int $type)
+    protected function __construct(string $fQCNComponent, string $fQCN, int $type)
     {
-        if (!is_subclass_of($fQCNComponent, RootComponent::class)) {
-            throw new NoSuchComponentException(sprintf('No component named %s exists.', $fQCNComponent));
-        }
-
-        self::$component[$fQCN] = $fQCNComponent;
-        self::$type[$fQCN] = $type;
-
         $this->fQCNComponent = $fQCNComponent;
         $this->fQCN = $fQCN;
         $this->fQCNType = $type;
     }
 
-    public static function getShortName(string $fQCNComponent): string
+    public static function register(string $fQCNComponent, string $fQCN, int $type = self::NO_SERVICE): ComponentResolverInterface
+    {
+        if (!is_subclass_of($fQCNComponent, RootComponent::class)) {
+            throw new NoSuchComponentException(sprintf('No component named %s exists.', $fQCNComponent));
+        }
+
+        if (isset(self::$resolver[$fQCN])) {
+            if (self::$component[$fQCN] !== $fQCNComponent) {
+                throw new OverwriteException(sprintf('Class %s can not be registered to component %s as it is already registered to component %s.', $fQCN, $fQCNComponent, self::$component[$fQCN]));
+            }
+
+            if (self::$type[$fQCN] !== $type) {
+                throw new OverwriteException(sprintf('Class %s can not be registered again with a different visibility type.', $fQCN));
+            }
+        } else {
+            self::$component[$fQCN] = $fQCNComponent;
+            self::$type[$fQCN] = $type;
+            self::$resolver[$fQCN] = new static($fQCNComponent, $fQCN, $type);
+        }
+
+        return self::$resolver[$fQCN];
+    }
+
+    public static function getRegistered(string $fQCN): ComponentResolverInterface
+    {
+        if (!isset(self::$resolver[$fQCN])) {
+            throw new NotRegisteredException(sprintf('Class %s is not registered to any component.', $fQCN));
+        }
+
+        return self::$resolver[$fQCN];
+    }
+
+    public static function getKey(string $fQCNComponent): string
     {
         if (!isset(self::$shortName[$fQCNComponent])) {
             $pos = strrpos($fQCNComponent, '\\');
@@ -65,7 +86,7 @@ class Component implements ComponentInterface
         return self::$shortName[$fQCNComponent];
     }
 
-    public function get(&$class, string $fQCN): ComponentInterface
+    public function get(&$class, string $fQCN): ComponentResolverInterface
     {
         $class = di_get($fQCN);
 
@@ -74,7 +95,7 @@ class Component implements ComponentInterface
         return $this;
     }
 
-    public function getUnregistered(&$class, string $fQCN): ComponentInterface
+    public function getUnregistered(&$class, string $fQCN): ComponentResolverInterface
     {
         $class = di_get($fQCN);
 
@@ -85,7 +106,7 @@ class Component implements ComponentInterface
         return $this;
     }
 
-    public function make(&$class, string $fQCN): ComponentInterface
+    public function make(&$class, string $fQCN): ComponentResolverInterface
     {
         $class = di_make($fQCN);
 
@@ -94,7 +115,7 @@ class Component implements ComponentInterface
         return $this;
     }
 
-    public function makeUnregistered(&$class, string $fQCN): ComponentInterface
+    public function makeUnregistered(&$class, string $fQCN): ComponentResolverInterface
     {
         $class = di_make($fQCN);
 
@@ -105,9 +126,9 @@ class Component implements ComponentInterface
         return $this;
     }
 
-    public function param(&$parameter, string $key): ComponentInterface
+    public function param(&$parameter, string $key): ComponentResolverInterface
     {
-        $extendedKey = self::getShortName($this->fQCNComponent).'.'.$key;
+        $extendedKey = self::getKey($this->fQCNComponent).'.'.$key;
 
         if (!di_has_param($extendedKey)) {
             $parameter = $this->getParameterByParent($this->fQCNComponent, $key);
@@ -163,11 +184,15 @@ class Component implements ComponentInterface
         $type = self::$type[$fQCN];
         $component = self::$component[$fQCN];
 
-        if (self::PRIVATE === $type && $component !== $this->fQCNComponent) {
+        if (self::NO_SERVICE === $type) {
+            throw new AccessDeniedException(sprintf('Class %s is not accessible, it is no service.', $fQCN));
+        }
+
+        if (self::PRIVATE_SERVICE === $type && $component !== $this->fQCNComponent) {
             throw new AccessDeniedException(sprintf('Class %s belongs to component %s and has private access, but was accessed from component %s.', $fQCN, $component, $this->fQCNComponent));
         }
 
-        if (self::PROTECTED === $type && $component !== $this->fQCNComponent && !is_subclass_of($this->fQCNComponent, $component)) {
+        if (self::PROTECTED_SERVICE === $type && $component !== $this->fQCNComponent && !is_subclass_of($this->fQCNComponent, $component)) {
             throw new AccessDeniedException(sprintf('Class %s belongs to component %s and has protected access, but was accessed from component %s which does not inherit from.', $fQCN, $component, $this->fQCNComponent));
         }
     }

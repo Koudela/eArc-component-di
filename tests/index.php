@@ -3,7 +3,7 @@
 namespace bla\bla\blub;
 
 use eArc\ComponentDI\RootComponent;
-use eArc\ComponentDI\CoObjects\Component;
+use eArc\ComponentDI\CoObjects\Resolver;
 use eArc\ComponentDI\ComponentDI;
 use eArc\DI\Exceptions\DIException;
 
@@ -22,7 +22,7 @@ class A
      */
     public function __construct()
     {
-        di_component(X::class, A::class, Component::PUBLIC)
+        di_comp_reg(X::class, A::class, Resolver::PUBLIC_SERVICE)
             ->param($this->p, 'p1');
     }
 
@@ -45,7 +45,7 @@ class B extends A
     {
         parent::__construct();
 
-        di_component(z::class, B::class, Component::PUBLIC)
+        di_comp_reg(z::class, B::class, Resolver::PUBLIC_SERVICE)
             ->get($this->a, A::class)
             ->param($this->p, 'p2');
     }
@@ -71,7 +71,7 @@ class C
      */
     public function __construct()
     {
-        di_component(X::class, C::class)
+        di_comp_reg(X::class, C::class)
             ->get($this->a, A::class)
             ->get($this->b, B::class);
     }
@@ -94,7 +94,7 @@ class D extends A
     }
 }
 ComponentDI::init();
-di_import_param([Component::getShortName(X::class) => ['p1' => 'Hase'], 'p2' => 'Igel']);
+di_import_param([di_comp_key(X::class) => ['p1' => 'Hase'], 'p2' => 'Igel']);
 $c = di_get(C::class);
 $c->getB()->getA()->sayHello();
 $c->getA()->sayHello();

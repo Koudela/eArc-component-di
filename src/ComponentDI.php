@@ -11,7 +11,7 @@
 
 namespace eArc\ComponentDI {
 
-    use eArc\ComponentDI\CoObjects\Component;
+    use eArc\ComponentDI\CoObjects\Resolver;
     use eArc\DI\CoObjects\DependencyResolver;
     use eArc\DI\CoObjects\ParameterBag;
     use BootstrapEArcDIComponent;
@@ -27,7 +27,7 @@ namespace eArc\ComponentDI {
          *
          * @throws DIException
          */
-        public static function init(string $component=Component::class, string $resolver=DependencyResolver::class, string $parameterBag=ParameterBag::class)
+        public static function init(string $component=Resolver::class, string $resolver=DependencyResolver::class, string $parameterBag=ParameterBag::class)
         {
             DI::init($resolver, $parameterBag);
 
@@ -39,14 +39,13 @@ namespace eArc\ComponentDI {
 
 namespace {
 
-    use eArc\ComponentDI\Exceptions\NoSuchComponentException;
-    use eArc\ComponentDI\Interfaces\ComponentInterface;
-    use eArc\ComponentDI\CoObjects\Component;
+    use eArc\ComponentDI\Interfaces\ComponentResolverInterface;
+    use eArc\ComponentDI\CoObjects\Resolver;
     use eArc\DI\Exceptions\DIException;
 
     abstract class BootstrapEArcDIComponent
     {
-        /** @var ComponentInterface */
+        /** @var ComponentResolverInterface */
         protected static $component;
 
         public static function getComponent()
@@ -59,31 +58,32 @@ namespace {
          *
          * @throws DIException
          */
-        public static function init(string $component=Component::class)
+        public static function init(string $component=Resolver::class)
         {
-            if (!is_subclass_of($component, ComponentInterface::class)) {
-                throw new DIException(sprintf('Component has to implement %s.', ComponentInterface::class));
+            if (!is_subclass_of($component, ComponentResolverInterface::class)) {
+                throw new DIException(sprintf('Resolver has to implement %s.', ComponentResolverInterface::class));
             }
 
             self::$component = $component;
 
-            if (!function_exists('di_component')) {
-                /**
-                 * Registers a class to a component and returns the corresponding ComponentInterface.
-                 *
-                 * @param string $fQCNComponent The fully qualified class name of the component.
-                 * @param string $fQCN The fully qualified class name of the current class.
-                 * @param int $type The access type of the current class.
-                 *
-                 * @return ComponentInterface
-                 *
-                 * @throws NoSuchComponentException
-                 */
-                function di_component(string $fQCNComponent, string $fQCN, int $type = ComponentInterface::PROTECTED): ComponentInterface
+            if (!function_exists('di_comp_reg')) {
+                function di_comp_reg(string $fQCNComponent, string $fQCN, int $type = ComponentResolverInterface::NO_SERVICE): ComponentResolverInterface
                 {
-                    $component = BootstrapEArcDIComponent::getComponent();
+                    return BootstrapEArcDIComponent::getComponent()::register($fQCNComponent, $fQCN, $type);
+                }
+            }
 
-                    return new $component($fQCNComponent, $fQCN, $type);
+            if (!function_exists('di_comp_get')) {
+                function di_comp_get(string $fQCN): ComponentResolverInterface
+                {
+                    return BootstrapEArcDIComponent::getComponent()::getRegistered($fQCN);
+                }
+            }
+
+            if (!function_exists('di_comp_key')) {
+                function di_comp_key(string $fQCNComponent): string
+                {
+                    return BootstrapEArcDIComponent::getComponent()::getKey($fQCNComponent);
                 }
             }
         }

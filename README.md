@@ -132,5 +132,8 @@ and [earc/event-tree](https://github.com/Koudela/eArc-eventTree).
 
 ## releases
 
+### upcomming
+version 1.0
+
 ### current
-version 0.0-BETA
+version 0.0
