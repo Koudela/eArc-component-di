@@ -11,8 +11,8 @@
 
 namespace eArc\ComponentDI\Exceptions;
 
-use eArc\DI\Exceptions\DIException;
+use eArc\DI\Exceptions\BaseException;
 
-class NoSuchComponentException extends DIException
+class NoComponentException extends BaseException
 {
 }

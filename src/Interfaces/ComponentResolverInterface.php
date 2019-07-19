@@ -12,11 +12,10 @@
 namespace eArc\ComponentDI\Interfaces;
 
 use eArc\ComponentDI\Exceptions\AccessDeniedException;
-use eArc\ComponentDI\Exceptions\OverwriteException;
-use eArc\ComponentDI\Exceptions\NoSuchComponentException;
-use eArc\ComponentDI\Exceptions\NotRegisteredException;
-use eArc\DI\Exceptions\DIException;
-use eArc\DI\Exceptions\NotFoundDIException;
+use eArc\ComponentDI\Exceptions\NoComponentException;
+use eArc\DI\Exceptions\InvalidArgumentException;
+use eArc\DI\Exceptions\MakeClassException;
+use eArc\DI\Exceptions\NotFoundException;
 
 /**
  * Interface of a component resolver.
@@ -33,40 +32,15 @@ interface ComponentResolverInterface
     const NO_SERVICE = 3;
 
     /**
-     * Registers a class to a component and returns the corresponding resolver.
-     *
-     * @param string $fQCNComponent The fully qualified class name of the component.
-     * @param string $fQCN          The fully qualified class name of the current class.
-     * @param int    $type          The access type of the current class.
-     *
-     * @return ComponentResolverInterface The resolver for the current class.
-     *
-     * @throws NoSuchComponentException   The root component is no ancestor of `$fQCNComponent`.
-     * @throws OverwriteException         The class is already registered to a different
-     * component or with a different visibility type..
-     */
-
-    public static function register(string $fQCNComponent, string $fQCN, int $type=self::NO_SERVICE): ComponentResolverInterface;
-
-    /**
-     * Returns the resolver of an already registered class.
+     * Returns the component resolver of class.
      *
      * @param string $fQCN The fully qualified class name of the class
      *
-     * @return ComponentResolverInterface The resolver registered to the class.
+     * @return ComponentResolverInterface The component resolver of a class.
      *
-     * @throws NotRegisteredException The class has not been registered.
+     * @throws NoComponentException The class does not implement a component flag.
      */
-    public static function getRegistered(string $fQCN): ComponentResolverInterface;
-
-    /**
-     * Returns the short name used in the parameter context of a component.
-     *
-     * @param string $fQCNComponent The fully qualified class name of the component.
-     *
-     * @return string The short name/key of the component.
-     */
-    public static function getKey(string $fQCNComponent): string;
+    public static function getComponentResolver(string $fQCN): ComponentResolverInterface;
 
     /**
      * Checks the class identifier against the current component. On success it passes
@@ -78,24 +52,11 @@ interface ComponentResolverInterface
      *
      * @return ComponentResolverInterface The current component object.
      *
-     * @throws AccessDeniedException The current component has no access to the class.
-     * @throws DIException `di_get($fQCN)` has thrown an error.
+     * @throws AccessDeniedException   The current component has no access to the class.
+     * @throws MakeClassException       Error while instantiating the class.
+     * @throws InvalidArgumentException The decorator is no subclass of the identifier
      */
     public function get(&$class, string $fQCN): ComponentResolverInterface;
-
-    /**
-     * As `get`, but it does not throw an AccessDeniedException if the class is
-     * not registered to any component.
-     *
-     * @param mixed  $class The variable to pass the classes instance.
-     * @param string $fQCN The identifier of the class.
-     *
-     * @return ComponentResolverInterface The current component object.
-     *
-     * @throws AccessDeniedException The current component has no access to the class.
-     * @throws DIException `di_get($fQCN)` has thrown an error.
-     */
-    public function getUnregistered(&$class, string $fQCN): ComponentResolverInterface;
 
     /**
      * Checks the class identifier against the current component. On success it passes
@@ -107,36 +68,40 @@ interface ComponentResolverInterface
      *
      * @return ComponentResolverInterface The current component object.
      *
-     * @throws AccessDeniedException The current component has no access to the class.
-     * @throws DIException `di_make($fQCN)` has thrown an error.
+     * @throws AccessDeniedException    The current component has no access to the class.
+     * @throws MakeClassException       Error while instantiating the class.
+     * @throws InvalidArgumentException The decorator is no subclass of the identifier
      */
     public function make(&$class, string $fQCN): ComponentResolverInterface;
 
     /**
-     * As `make`, but it does not throw an AccessDeniedException if the class is
-     * not registered to any component.
-     *
-     * @param mixed  $class The variable to pass the classes instance.
-     * @param string $fQCN The identifier of the class.
-     *
-     * @return ComponentResolverInterface The current component object.
-     *
-     * @throws AccessDeniedException The current component has no access to the class.
-     * @throws DIException `di_make($fQCN)` has thrown an error.
-     */
-    public function makeUnregistered(&$class, string $fQCN): ComponentResolverInterface;
-
-    /**
      * Searches the component and all parent components for the parameter. If none
-     * holds it looks up the global namespace. If a parameter is found it is passed
-     * to the `$param` variable otherwise a NotFoundDIException is thrown.
+     * holds it looks up the global namespace. The result is passed to the `$param`
+     * variable.
      *
      * @param mixed  $param
      * @param string $key
      *
      * @return ComponentResolverInterface The current component object.
      *
-     * @throws NotFoundDIException The parameter is not set.
+     * @throws NotFoundException The Parameter is not set.
      */
     public function param(&$param, string $key): ComponentResolverInterface;
+
+    /**
+     * @param string $name
+     *
+     * @return iterable
+     *
+     * @throws AccessDeniedException
+     */
+    public function getTagged(string $name): iterable;
+
+    /**
+     * @param string $name
+     *
+     * @return iterable
+     */
+    public function getTaggedSilentFail(string $name): iterable;
+
 }

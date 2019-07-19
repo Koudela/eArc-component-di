@@ -132,8 +132,14 @@ and [earc/event-tree](https://github.com/Koudela/eArc-eventTree).
 
 ## releases
 
-### upcomming
+### upcoming
 version 1.0
 
 ### current
 version 0.0
+
+# old
+
+In modern agile teams maybe the biggest advantage of [earc/components-di](https://github.com/Koudela/eArc-component-di)
+is that no programmer can introduce a new dependency accidentally. Thus helping to 
+keep the architectural design clean.

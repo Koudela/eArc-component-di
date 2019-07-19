@@ -16,4 +16,15 @@ namespace eArc\ComponentDI;
  */
 class RootComponent
 {
+    public static function getShortName(): string
+    {
+        static $shortName;
+
+        if (!isset($shortName)) {
+            $pos = strrpos(static::class, '\\');
+            $shortName = strtolower(substr(static::class, false === $pos ? 0 : $pos + 1));
+        }
+
+        return $shortName;
+    }
 }

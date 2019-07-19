@@ -9,10 +9,8 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\ComponentDI\Exceptions;
+namespace eArc\ComponentDI\Interfaces\Flags;
 
-use eArc\DI\Exceptions\BaseException;
-
-class AccessDeniedException extends BaseException
+interface PrivateComponentInterface extends ProtectedComponentInterface
 {
 }

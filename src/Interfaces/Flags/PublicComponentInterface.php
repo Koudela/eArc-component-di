@@ -9,10 +9,10 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\ComponentDI\Exceptions;
+namespace eArc\ComponentDI\Interfaces\Flags;
 
-use eArc\DI\Exceptions\DIException;
+use eArc\ComponentDI\Interfaces\ComponentInterface;
 
-class NotRegisteredException extends DIException
+interface PublicComponentInterface extends ComponentInterface
 {
 }

@@ -2,10 +2,14 @@
 
 namespace bla\bla\blub;
 
+use eArc\ComponentDI\Exceptions\AccessDeniedException;
+use eArc\ComponentDI\Interfaces\Flags\ProtectedComponentInterface;
+use eArc\ComponentDI\Interfaces\Flags\PublicComponentInterface;
 use eArc\ComponentDI\RootComponent;
-use eArc\ComponentDI\CoObjects\Resolver;
 use eArc\ComponentDI\ComponentDI;
-use eArc\DI\Exceptions\DIException;
+use eArc\DI\Exceptions\InvalidArgumentException;
+use eArc\DI\Exceptions\MakeClassException;
+use eArc\DI\Exceptions\NotFoundException;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -13,16 +17,16 @@ class X extends RootComponent {}
 class Y extends X {}
 class z extends RootComponent {}
 
-class A
+class A implements PublicComponentInterface
 {
     protected $p;
 
     /**
-     * @throws DIException
+     * @throws NotFoundException
      */
     public function __construct()
     {
-        di_comp_reg(X::class, A::class, Resolver::PUBLIC_SERVICE)
+        di_comp(static::class)
             ->param($this->p, 'p1');
     }
 
@@ -35,17 +39,28 @@ class A
     {
         echo "my Parameter is {$this->p}!\n";
     }
+
+    public static function getComponent(): string
+    {
+        return X::class;
+    }
 }
 
-class B extends A
+class B extends A implements PublicComponentInterface
 {
     protected $a;
 
+    /**
+     * @throws NotFoundException
+     * @throws AccessDeniedException
+     * @throws InvalidArgumentException
+     * @throws MakeClassException
+     */
     public function __construct()
     {
         parent::__construct();
 
-        di_comp_reg(z::class, B::class, Resolver::PUBLIC_SERVICE)
+        di_comp(static::class)
             ->get($this->a, A::class)
             ->param($this->p, 'p2');
     }
@@ -59,19 +74,24 @@ class B extends A
     {
         echo "hello, I am B\n";
     }
+
+    public static function getComponent(): string
+    {
+        return Y::class;
+    }
 }
 
-class C
+class C implements ProtectedComponentInterface
 {
     protected $a;
     protected $b;
 
     /**
-     * @throws DIException
+     * @throws \Exception
      */
     public function __construct()
     {
-        di_comp_reg(X::class, C::class)
+        di_comp(static::class)
             ->get($this->a, A::class)
             ->get($this->b, B::class);
     }
@@ -85,6 +105,12 @@ class C
     {
         return $this->b;
     }
+
+    public static function getComponent(): string
+    {
+        return Y::class;
+    }
+
 }
 
 class D extends A
@@ -93,7 +119,10 @@ class D extends A
         echo "I decorate A\n";
     }
 }
+
+
 ComponentDI::init();
+
 di_import_param([di_comp_key(X::class) => ['p1' => 'Hase'], 'p2' => 'Igel']);
 $c = di_get(C::class);
 $c->getB()->getA()->sayHello();

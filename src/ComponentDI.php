@@ -11,12 +11,12 @@
 
 namespace eArc\ComponentDI {
 
-    use eArc\ComponentDI\CoObjects\Resolver;
-    use eArc\DI\CoObjects\DependencyResolver;
+    use eArc\ComponentDI\CoObjects\ComponentResolver;
+    use eArc\DI\CoObjects\Resolver;
     use eArc\DI\CoObjects\ParameterBag;
     use BootstrapEArcDIComponent;
     use eArc\DI\DI;
-    use eArc\DI\Exceptions\DIException;
+    use eArc\DI\Exceptions\InvalidArgumentException;
 
     abstract class ComponentDI
     {
@@ -25,9 +25,9 @@ namespace eArc\ComponentDI {
          * @param string $resolver
          * @param string $parameterBag
          *
-         * @throws DIException
+         * @throws InvalidArgumentException
          */
-        public static function init(string $component=Resolver::class, string $resolver=DependencyResolver::class, string $parameterBag=ParameterBag::class)
+        public static function init(string $component=ComponentResolver::class, string $resolver=Resolver::class, string $parameterBag=ParameterBag::class)
         {
             DI::init($resolver, $parameterBag);
 
@@ -40,8 +40,9 @@ namespace eArc\ComponentDI {
 namespace {
 
     use eArc\ComponentDI\Interfaces\ComponentResolverInterface;
-    use eArc\ComponentDI\CoObjects\Resolver;
-    use eArc\DI\Exceptions\DIException;
+    use eArc\ComponentDI\CoObjects\ComponentResolver;
+    use eArc\ComponentDI\RootComponent;
+    use eArc\DI\Exceptions\InvalidArgumentException;
 
     abstract class BootstrapEArcDIComponent
     {
@@ -56,34 +57,28 @@ namespace {
         /**
          * @param string $component
          *
-         * @throws DIException
+         * @throws InvalidArgumentException
          */
-        public static function init(string $component=Resolver::class)
+        public static function init(string $component=ComponentResolver::class)
         {
             if (!is_subclass_of($component, ComponentResolverInterface::class)) {
-                throw new DIException(sprintf('Resolver has to implement %s.', ComponentResolverInterface::class));
+                throw new InvalidArgumentException(sprintf('ComponentResolver has to implement %s.', ComponentResolverInterface::class));
             }
 
             self::$component = $component;
 
-            if (!function_exists('di_comp_reg')) {
-                function di_comp_reg(string $fQCNComponent, string $fQCN, int $type = ComponentResolverInterface::NO_SERVICE): ComponentResolverInterface
+            if (!function_exists('di_comp')) {
+                function di_comp(string $fQCN): ComponentResolverInterface
                 {
-                    return BootstrapEArcDIComponent::getComponent()::register($fQCNComponent, $fQCN, $type);
-                }
-            }
-
-            if (!function_exists('di_comp_get')) {
-                function di_comp_get(string $fQCN): ComponentResolverInterface
-                {
-                    return BootstrapEArcDIComponent::getComponent()::getRegistered($fQCN);
+                    return BootstrapEArcDIComponent::getComponent()::getComponentResolver($fQCN);
                 }
             }
 
             if (!function_exists('di_comp_key')) {
-                function di_comp_key(string $fQCNComponent): string
+                function di_comp_key(string $fQCNComponent): ?string
                 {
-                    return BootstrapEArcDIComponent::getComponent()::getKey($fQCNComponent);
+                    /** @var RootComponent $fQCNComponent */
+                    return is_subclass_of($fQCNComponent, RootComponent::class) ? $fQCNComponent::getShortName() : null;
                 }
             }
         }

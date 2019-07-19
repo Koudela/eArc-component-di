@@ -9,10 +9,14 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\ComponentDI\Exceptions;
+namespace eArc\ComponentDI\Interfaces;
 
-use eArc\DI\Exceptions\BaseException;
-
-class AccessDeniedException extends BaseException
+interface ComponentInterface
 {
+    /**
+     * Returns the fully qualified class name of a component
+     *
+     * @return string
+     */
+    public static function getComponent(): string;
 }
