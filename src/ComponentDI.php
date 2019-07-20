@@ -74,6 +74,13 @@ namespace {
                 }
             }
 
+            if (!function_exists('di_comp_has_access')) {
+                function di_comp_has(string $fQCNCurrent, string $fQCNCall): bool
+                {
+                    return BootstrapEArcDIComponent::getComponent()::hasAccess($fQCNCurrent, $fQCNCall);
+                }
+            }
+
             if (!function_exists('di_comp_key')) {
                 function di_comp_key(string $fQCNComponent): ?string
                 {

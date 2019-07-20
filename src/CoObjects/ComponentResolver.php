@@ -15,10 +15,10 @@ use eArc\ComponentDI\Exceptions\AccessDeniedException;
 use eArc\ComponentDI\Exceptions\NoComponentException;
 use eArc\ComponentDI\Interfaces\ComponentInterface;
 use eArc\ComponentDI\Interfaces\ComponentResolverInterface;
-use eArc\ComponentDI\Interfaces\Flags\NoServiceComponentInterface;
-use eArc\ComponentDI\Interfaces\Flags\PrivateComponentInterface;
-use eArc\ComponentDI\Interfaces\Flags\ProtectedComponentInterface;
-use eArc\ComponentDI\Interfaces\Flags\PublicComponentInterface;
+use eArc\ComponentDI\Interfaces\Flags\NoServiceInterface;
+use eArc\ComponentDI\Interfaces\Flags\PrivateServiceInterface;
+use eArc\ComponentDI\Interfaces\Flags\ProtectedServiceInterface;
+use eArc\ComponentDI\Interfaces\Flags\PublicServiceInterface;
 use eArc\ComponentDI\RootComponent;
 use eArc\DI\Exceptions\NotFoundException;
 
@@ -29,6 +29,7 @@ class ComponentResolver implements ComponentResolverInterface
 
     /** @var ComponentInterface|string */
     protected $fQCN;
+
     /** @var RootComponent|string */
     protected $fQCNComponent;
 
@@ -39,7 +40,7 @@ class ComponentResolver implements ComponentResolverInterface
      */
     protected function __construct(string $fQCN)
     {
-        if (!is_subclass_of($fQCN, PublicComponentInterface::class)) {
+        if (!is_subclass_of($fQCN, PublicServiceInterface::class)) {
             throw new NoComponentException(sprintf('Class %s has no flag component interface.', $fQCN));
         }
 
@@ -61,24 +62,28 @@ class ComponentResolver implements ComponentResolverInterface
     }
 
 
-    public function get(&$class, string $fQCN): ComponentResolverInterface
+    public function get(&$object, string $fQCN): ComponentResolverInterface
     {
-        $class = di_get($fQCN);
+        $this->checkVisibility($this->getDecorator($fQCN));
 
-        $this->checkVisibility($fQCN);
+        $object = di_get($fQCN);
 
         return $this;
     }
 
-    public function make(&$class, string $fQCN): ComponentResolverInterface
+    public function make(&$object, string $fQCN): ComponentResolverInterface
     {
-        $class = di_make($fQCN);
+        $this->checkVisibility($this->getDecorator($fQCN));
 
-        $this->checkVisibility($fQCN);
+        $object = di_make($fQCN);
 
         return $this;
     }
 
+    protected function getDecorator(string $fQCN): string
+    {
+        return di_is_decorated($fQCN) ? $this->getDecorator(di_get_decorator($fQCN)) : $fQCN;
+    }
 
     public function param(&$parameter, string $key): ComponentResolverInterface
     {
@@ -113,24 +118,27 @@ class ComponentResolver implements ComponentResolverInterface
         return $this->getParameterRecursive(get_parent_class($component), $key);
     }
 
-    public function getTagged(string $name): iterable
+    public static function hasAccess(string $fQCNCurrent, string $fQCNCall): bool
     {
-        foreach (di_get_tagged($name) as $fQCN) {
-            $this->checkVisibility($fQCN);
-            yield $fQCN;
-        }
-    }
+        if (is_subclass_of($fQCNCall, PublicServiceInterface::class)
+            && !is_subclass_of($fQCNCall, NoServiceInterface::class)
+        ) {
+            /** @var ComponentInterface $fQCNCurrent */
+            $componentCurrent = $fQCNCurrent::getComponent();
+            /** @var ComponentInterface $fQCNCall */
+            $componentCall = $fQCNCall::getComponent();
 
-    public function getTaggedSilentFail(string $name): iterable
-    {
-        foreach (di_get_tagged($name) as $fQCN) {
-            try {
-                $this->checkVisibility($fQCN);
-            } catch (AccessDeniedException $e) {
-                continue;
+            if (is_subclass_of($fQCNCall, PrivateServiceInterface::class) && $componentCall !== $componentCurrent) {
+                return false;
             }
-            yield $fQCN;
+
+            return !is_subclass_of($fQCNCall, ProtectedServiceInterface::class)
+                || $componentCall === $componentCurrent
+                || is_subclass_of($componentCurrent, $componentCall);
+
         }
+
+        return false;
     }
 
     /**
@@ -140,22 +148,22 @@ class ComponentResolver implements ComponentResolverInterface
      */
     protected function checkVisibility(string $fQCN): void
     {
-        if (!is_subclass_of($fQCN, PublicComponentInterface::class)) {
+        if (!is_subclass_of($fQCN, PublicServiceInterface::class)) {
             throw new AccessDeniedException(sprintf('Class %s has no flag component interface.', $fQCN));
         }
 
         /** @var ComponentInterface $fQCN */
         $component = $fQCN::getComponent();
 
-        if (is_subclass_of($fQCN, NoServiceComponentInterface::class)) {
+        if (is_subclass_of($fQCN, NoServiceInterface::class)) {
             throw new AccessDeniedException(sprintf('Class %s is not accessible, it is no service.', $fQCN));
         }
 
-        if (is_subclass_of($fQCN, PrivateComponentInterface::class) && $component !== $this->fQCNComponent) {
+        if (is_subclass_of($fQCN, PrivateServiceInterface::class) && $component !== $this->fQCNComponent) {
             throw new AccessDeniedException(sprintf('Class %s belongs to component %s and has private access, but was accessed from component %s.', $fQCN, $component, $this->fQCNComponent));
         }
 
-        if (is_subclass_of($fQCN, ProtectedComponentInterface::class) && $component !== $this->fQCNComponent && !is_subclass_of($this->fQCNComponent, $component)) {
+        if (is_subclass_of($fQCN, ProtectedServiceInterface::class) && $component !== $this->fQCNComponent && !is_subclass_of($this->fQCNComponent, $component)) {
             throw new AccessDeniedException(sprintf('Class %s belongs to component %s and has protected access, but was accessed from component %s which does not inherit from.', $fQCN, $component, $this->fQCNComponent));
         }
     }

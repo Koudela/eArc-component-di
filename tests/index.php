@@ -3,8 +3,8 @@
 namespace bla\bla\blub;
 
 use eArc\ComponentDI\Exceptions\AccessDeniedException;
-use eArc\ComponentDI\Interfaces\Flags\ProtectedComponentInterface;
-use eArc\ComponentDI\Interfaces\Flags\PublicComponentInterface;
+use eArc\ComponentDI\Interfaces\Flags\PrivateServiceInterface;
+use eArc\ComponentDI\Interfaces\Flags\ProtectedServiceInterface;
 use eArc\ComponentDI\RootComponent;
 use eArc\ComponentDI\ComponentDI;
 use eArc\DI\Exceptions\InvalidArgumentException;
@@ -17,7 +17,7 @@ class X extends RootComponent {}
 class Y extends X {}
 class z extends RootComponent {}
 
-class A implements PublicComponentInterface
+class A implements PrivateServiceInterface
 {
     protected $p;
 
@@ -46,7 +46,7 @@ class A implements PublicComponentInterface
     }
 }
 
-class B extends A implements PublicComponentInterface
+class B extends A implements PrivateServiceInterface
 {
     protected $a;
 
@@ -81,7 +81,7 @@ class B extends A implements PublicComponentInterface
     }
 }
 
-class C implements ProtectedComponentInterface
+class C implements ProtectedServiceInterface
 {
     protected $a;
     protected $b;
@@ -119,7 +119,6 @@ class D extends A
         echo "I decorate A\n";
     }
 }
-
 
 ComponentDI::init();
 

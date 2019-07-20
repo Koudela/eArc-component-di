@@ -22,15 +22,6 @@ use eArc\DI\Exceptions\NotFoundException;
  */
 interface ComponentResolverInterface
 {
-    /** Class can be injected to any component */
-    const PUBLIC_SERVICE = 0;
-    /** Class is injectable to any component that inherits from the classes component */
-    const PROTECTED_SERVICE = 1;
-    /** Class can only be injected to the same component */
-    const PRIVATE_SERVICE = 2;
-    /** Class can not be injected */
-    const NO_SERVICE = 3;
-
     /**
      * Returns the component resolver of class.
      *
@@ -43,11 +34,21 @@ interface ComponentResolverInterface
     public static function getComponentResolver(string $fQCN): ComponentResolverInterface;
 
     /**
+     * Checks whether a class is accessible to another class or not.
+     *
+     * @param string $fQCNCurrent The fully qualified class name of the accessor class.
+     * @param string $fQCNCall    The fully qualified class name of the accessed class.
+     *
+     * @return bool
+     */
+    public static function hasAccess(string $fQCNCurrent, string $fQCNCall): bool;
+
+    /**
      * Checks the class identifier against the current component. On success it passes
-     * the returned object of the function `di_get($fQCN)` to the `$class` variable.
+     * the returned object of the function `di_get($fQCN)` to the `$object` variable.
      * Otherwise it throws an AccessDeniedException.
      *
-     * @param mixed  $class The variable to pass the classes instance.
+     * @param mixed  $object The variable to pass the classes instance.
      * @param string $fQCN The identifier of the class.
      *
      * @return ComponentResolverInterface The current component object.
@@ -56,14 +57,14 @@ interface ComponentResolverInterface
      * @throws MakeClassException       Error while instantiating the class.
      * @throws InvalidArgumentException The decorator is no subclass of the identifier
      */
-    public function get(&$class, string $fQCN): ComponentResolverInterface;
+    public function get(&$object, string $fQCN): ComponentResolverInterface;
 
     /**
      * Checks the class identifier against the current component. On success it passes
-     * the returned object of the function `di_make($fQCN)` to the `$class` variable.
+     * the returned object of the function `di_make($fQCN)` to the `$object` variable.
      * Otherwise it throws an AccessDeniedException.
      *
-     * @param mixed  $class The variable to pass the classes instance.
+     * @param mixed  $object The variable to pass the classes instance.
      * @param string $fQCN The identifier of the class.
      *
      * @return ComponentResolverInterface The current component object.
@@ -72,7 +73,7 @@ interface ComponentResolverInterface
      * @throws MakeClassException       Error while instantiating the class.
      * @throws InvalidArgumentException The decorator is no subclass of the identifier
      */
-    public function make(&$class, string $fQCN): ComponentResolverInterface;
+    public function make(&$object, string $fQCN): ComponentResolverInterface;
 
     /**
      * Searches the component and all parent components for the parameter. If none
@@ -87,21 +88,4 @@ interface ComponentResolverInterface
      * @throws NotFoundException The Parameter is not set.
      */
     public function param(&$param, string $key): ComponentResolverInterface;
-
-    /**
-     * @param string $name
-     *
-     * @return iterable
-     *
-     * @throws AccessDeniedException
-     */
-    public function getTagged(string $name): iterable;
-
-    /**
-     * @param string $name
-     *
-     * @return iterable
-     */
-    public function getTaggedSilentFail(string $name): iterable;
-
 }

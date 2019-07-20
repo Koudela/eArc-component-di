@@ -11,6 +11,6 @@
 
 namespace eArc\ComponentDI\Interfaces\Flags;
 
-interface ProtectedComponentInterface extends PublicComponentInterface
+interface PrivateServiceInterface extends ProtectedServiceInterface
 {
 }
