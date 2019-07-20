@@ -29,7 +29,7 @@ the order get exported with the new shipping costs - but the customer has confir
 the old ones.
 
 Maybe your lucky and the time window is small enough to let the bug never really 
-happen. But face it, you written bad  buggy code and what makes it even worse, it 
+happen. But face it, you have written bad buggy code and what makes it even worse, it 
 passed all quality enforcement measures!
 
 To cut a long story short, if the engineer who wrote the CartService::class had a 
@@ -155,7 +155,7 @@ the first argument is a always the variable to pass the result of the call to.
 
 The component resolver object methods `get()` and `make()` replace the `di_*` functions 
 `di_get` and `di_make` respectively. Both perform a visibility check for the
-passed class name or the decorator if decorated against the current component first. If 
+passed class name (or the decorator if decorated) against the current component first. If 
 the visibility check fails a `AccessDeniedException` is thrown. If it is passed
 the result of a `di_get` or `di_make` call is written to the `$object` argument that 
 was passed by reference.
@@ -229,13 +229,31 @@ The other `di_*` functions for decoration, tagging and mocking stay the same and
 can be used without any restrictions. 
 
 `di_clear_cache` is not restricted either. But `di_has` should be used with care - 
-maybe sometimes an `di_has(...) && di_comp_has_access(...)` is closer to the truth.
+maybe sometimes an 
+
+```php
+di_has(Service::class) && di_comp_has_access(static::class, Service::class)
+``` 
+
+is closer to the truth.
 
 ## exceptions
 
- * All exceptions thrown inherit from `eArc\DI\BaseException`.
+ * All exceptions thrown inherit from `eArc\DI\Exceptions\BaseException`.
+
+ * The `AccessDeniedException` extends from the `eArc\DI\Exceptions\InvalidArgumentException`.
  
- +
+ * An `AccessDeniedException` is thrown if the visibility check of `get()` or `make()`
+ fails.
+ 
+ * A `eArc\DI\Exceptions\NotFoundException` is thrown if a parameter lookup with 
+ `param()` does not find any parameter result.
+
+ * A `NoComponentException` is thrown if `di_comp` is called on a class that does
+ not implement one of the component flag interfaces.
+
+ * An `eArc\DI\Exceptions\InvalidArgumentException` is thrown if `ComponentDi::init()` 
+ is called with a class as argument that does not implement the `ComponentResolverInterface`.
 
 ## hacking earc/component-di
 
@@ -246,10 +264,14 @@ logic to your need.
 
 ## releases
 
-### release v1.0
+### release v1.0 (alpha)
 
 complete rewrite based on the complete rewrite of [earc/di (release v2.0)](https://github.com/Koudela/eArc-di#release-v20-alpha)
 
 ### release v0.0
 
 initial release
+
+#TODO
+
+ - WRITE TESTS

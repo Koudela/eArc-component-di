@@ -11,8 +11,8 @@
 
 namespace eArc\ComponentDI\Exceptions;
 
-use eArc\DI\Exceptions\BaseException;
+use eArc\DI\Exceptions\InvalidArgumentException;
 
-class AccessDeniedException extends BaseException
+class AccessDeniedException extends InvalidArgumentException
 {
 }
