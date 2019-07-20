@@ -11,19 +11,12 @@
 
 namespace eArc\ComponentDI\Interfaces;
 
-use eArc\Observer\Interfaces\ListenerInterface;
-
-/**
- * Listener interface for the listeners holding the components dependency
- * definitions.
- */
-interface ComponentListenerInterface extends ListenerInterface
+interface ComponentInterface
 {
     /**
-     * Get an array of the observer tree names related to the component
-     * dependencies.
+     * Returns the fully qualified class name of a component
      *
-     * @return string[]
+     * @return string
      */
-    public static function getComponentDependencies(): array;
+    public static function getComponent(): string;
 }

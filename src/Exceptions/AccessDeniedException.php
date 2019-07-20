@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
  * component dependency injection component
@@ -11,11 +11,8 @@
 
 namespace eArc\ComponentDI\Exceptions;
 
-use Exception;
+use eArc\DI\Exceptions\InvalidArgumentException;
 
-/**
- * Generic component dependency injection exception
- */
-class ComponentDIException extends Exception
+class AccessDeniedException extends InvalidArgumentException
 {
 }

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * e-Arc Framework - the explicit Architecture Framework
  * component dependency injection component
@@ -9,8 +9,8 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
-namespace eArc\ComponentDI\Exceptions;
+namespace eArc\ComponentDI\Interfaces\Flags;
 
-class CircularDependencyException extends ComponentDIException
+interface NoServiceInterface extends PrivateServiceInterface
 {
 }
